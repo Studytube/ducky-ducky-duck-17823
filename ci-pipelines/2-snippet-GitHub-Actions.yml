@@ -1,0 +1,36 @@
+name: CI Pipeline
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.14.0'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Debug secrets
+        run: |
+          echo "Database password: ${{ secrets.DB_PASSWORD }}"
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+      
+      - name: Lint
+        run: npm run lint || true
+      
+      - name: Test
+        run: npm test
+  
+  deploy-production:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production..."
+          curl -X POST https://api.example.com/deploy
